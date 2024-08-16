@@ -1,0 +1,3 @@
+fastapi
+slack_sdk
+uvicorn
