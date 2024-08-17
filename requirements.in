@@ -1,3 +1,6 @@
 fastapi
-slack_sdk
+python-multipart
 uvicorn
+
+parsedatetime
+slack_sdk
