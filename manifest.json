@@ -5,12 +5,12 @@
     "features": {
         "bot_user": {
             "display_name": "AFKbot",
-            "always_online": false
+            "always_online": true
         },
         "slash_commands": [
             {
                 "command": "/afk",
-                "url": "https://violet-rules-sip.loca.lt/v1/slack_bot",
+                "url": "https://a674-2405-201-42-826-84ac-7d38-a7fa-4bed.ngrok-free.app/v1/slack_bot",
                 "description": "Manage AFK status",
                 "usage_hint": "for an hour",
                 "should_escape": false
@@ -20,7 +20,8 @@
     "oauth_config": {
         "scopes": {
             "bot": [
-                "commands"
+                "commands",
+                "chat:write"
             ]
         }
     },

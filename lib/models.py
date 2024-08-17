@@ -1,6 +1,13 @@
 from datetime import UTC, datetime
+from enum import Enum
+from uuid import uuid4
 
 from pydantic import BaseModel, Field
+
+
+class AFKStatus(Enum):
+    ACTIVE = "active"
+    CANCELLED = "cancelled"
 
 
 class SlackPostRequestBody(BaseModel):
@@ -20,7 +27,8 @@ class SlackPostRequestBody(BaseModel):
 
 
 class AFKRecord(BaseModel):
-    created: datetime = Field(default_factory=lambda: datetime.now(tz=UTC))
+    id: str = Field(default_factory=lambda: str(uuid4()), description="")
+    created: float = Field(default_factory=lambda: datetime.now(tz=UTC).timestamp())
     team_id: str = Field(description="")
     team_domain: str = Field(description="")
     channel_id: str = Field(description="")
@@ -30,5 +38,6 @@ class AFKRecord(BaseModel):
     command: str = Field(description="Slack's slash command used to create this record")
     text: str = Field(description="Argument of the triggerer slash command")
     trigger_id: str = Field(description="")
-    start_datetime: datetime = Field(description="This timestamp should not be timezone aware (atleast for now)")
-    end_datetime: datetime = Field(description="This timestamp should not be timezone aware (atleast for now)")
+    start_datetime: float = Field(description="This timestamp should not be timezone aware (atleast for now)")
+    end_datetime: float = Field(description="This timestamp should not be timezone aware (atleast for now)")
+    status: str = Field(default=AFKStatus.ACTIVE.value, description="")

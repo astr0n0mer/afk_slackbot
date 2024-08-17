@@ -1,39 +1,37 @@
-from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
+from datetime import datetime
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, Request
+from starlette import status
 
 from afk_parser.lib.afk_parser import AFKParser
 from lib.models import AFKRecord, SlackPostRequestBody
+from lib.services.jsonl_service import JSONLService
 from lib.utils import format_datetime
 
-app = FastAPI()
-parser = AFKParser()
+store_service: JSONLService = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
 afk_records: list[AFKRecord] = []
+parser: AFKParser = AFKParser()
+server_started_at = datetime.now()
 
 
-# TODO: this endpoint can be removed
-@app.get("/")
-def read_root():
-    return {"foo": "bar"}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    #! code to run before startup
+    # TODO: setup DB connection here
+    # globals()["store_service"] = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
+    # globals()["parser"] = AFKParser()
+    yield
+    #! code to run after shutdown
 
 
-@app.post("/v1/slack_bot")
-async def handle_slack_bot_input(request: Request):
-    raw_body = await request.body()
-    form_data = await request.form()
-    slack_post_request_body = SlackPostRequestBody.parse_obj({k: v for k, v in form_data.items()})
+# app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
-    parse_result = parser.parse_dates(phrase=slack_post_request_body.text)
-    if not parse_result:
-        # TODO: trigger error handling mechanism
-        return {"foo": "bar"}
 
-    afk_record = AFKRecord(
-        **slack_post_request_body.dict(),
-        start_datetime=parse_result[0],
-        end_datetime=parse_result[1],
-    )
-    afk_records.append(afk_record)
-
-    response = {
+def get_response(records: list[AFKRecord]) -> dict:
+    return {
         "blocks": [
             {
                 "type": "section",
@@ -41,19 +39,59 @@ async def handle_slack_bot_input(request: Request):
                     "type": "mrkdwn",
                     "text": "\n".join(
                         (
-                            f"*{afk_record.user_name}* (afk {afk_record.text})",
-                            f"From: {format_datetime(afk_record.start_datetime)}\tTo: {format_datetime(afk_record.end_datetime)}",
+                            f"*{record.user_name}* (afk {record.text})",
+                            f"From: {format_datetime(datetime.fromtimestamp(record.start_datetime))}\tTo: {format_datetime(datetime.fromtimestamp(record.end_datetime))}",
                         ),
                     ),
                 },
             }
-            for afk_record in afk_records
+            for record in records
         ],
     }
 
+
+@app.get("/health-check")
+def read_health():
+    return {"server_started_at": server_started_at.strftime("%Y-%m-%d %H:%M:%S"), "status": "active"}
+
+
+@app.post("/v1/slack_bot")
+async def handle_slack_bot_input(request: Request):
+    raw_body = await request.body()
+    # TODO: validate the request token here
+
+    form_data = await request.form()
+    try:
+        slack_post_request_body = SlackPostRequestBody.parse_obj({k: v for k, v in form_data.items()})
+    except:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
     if slack_post_request_body.text == "list":
-        raise NotImplementedError("will implement this later")
-    else:
-        for key, value in form_data.items():
-            print(key, "\t", value)
+        afk_records = await store_service.read(team_ids=[slack_post_request_body.team_id])
+        return get_response(records=afk_records) if len(afk_records) > 0 else "No AFK records"
+
+    parse_result = parser.parse_dates(phrase=slack_post_request_body.text)
+    if not parse_result:
+        # TODO: trigger error handling mechanism
+        return {"foo": "bar"}
+
+    afk_record = AFKRecord(
+        **slack_post_request_body.model_dump(),
+        start_datetime=parse_result[0].timestamp(),
+        end_datetime=parse_result[1].timestamp(),
+    )
+    existing_afk_records = await store_service.read(
+        team_ids=[slack_post_request_body.team_id],
+        user_ids=[slack_post_request_body.user_id],
+    )
+    await store_service.write(
+        records=[afk_record],
+    )  #! just for demo, in production, the below commented code will be used
+    # await store_service.update(
+    #     records=[record.model_copy(update={"status": AFKStatus.CANCELLED.value}) for record in existing_afk_records]
+    #     + [afk_record],
+    #     upsert=True,
+    # )
+    response = get_response(records=[afk_record])
+    print(f"{response=}")
     return response
