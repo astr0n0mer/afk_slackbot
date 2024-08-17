@@ -4,12 +4,16 @@
 #
 #    pip-compile --output-file=requirements.txt requirements.in
 #
+afk-parser @ git+https://github.com/astr0n0mer/afk_parser.git@stable
+    # via -r requirements.in
 annotated-types==0.7.0
     # via pydantic
 anyio==4.4.0
     # via starlette
 click==8.1.7
     # via uvicorn
+dnspython==2.6.1
+    # via pymongo
 fastapi==0.112.1
     # via -r requirements.in
 h11==0.14.0
@@ -17,11 +21,13 @@ h11==0.14.0
 idna==3.7
     # via anyio
 parsedatetime==2.6
-    # via -r requirements.in
+    # via afk-parser
 pydantic==2.8.2
     # via fastapi
 pydantic-core==2.20.1
     # via pydantic
+pymongo==4.8.0
+    # via -r requirements.in
 python-multipart==0.0.9
     # via -r requirements.in
 slack-sdk==3.31.0

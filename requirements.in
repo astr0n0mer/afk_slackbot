@@ -1,6 +1,7 @@
 fastapi
+pymongo
 python-multipart
 uvicorn
 
-parsedatetime
+git+https://github.com/astr0n0mer/afk_parser.git@stable#egg=afk_parser
 slack_sdk

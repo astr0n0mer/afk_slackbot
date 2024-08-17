@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, Request
 from starlette import status
 
-from afk_parser.lib.afk_parser import AFKParser
+from afk_parser.afk_parser import AFKParser
 from lib.models import AFKRecord, SlackPostRequestBody
 from lib.services.jsonl_service import JSONLService
 from lib.utils import format_datetime
