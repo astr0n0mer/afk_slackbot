@@ -75,6 +75,16 @@ async def handle_slack_bot_input(request: Request):
     if slack_post_request_body.text == "list":
         afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return get_response(records=afk_records) if len(afk_records) > 0 else "No AFK records"
+    elif slack_post_request_body.text == "clear":
+        records_updated = await storage_service.clear_afk(
+            team_id=slack_post_request_body.team_id,
+            user_id=slack_post_request_body.user_id,
+        )
+        return (
+            f"{records_updated} AFK record{'s' if records_updated > 1 else ''} cleared"
+            if records_updated
+            else "No AFK records"
+        )
 
     parse_result = parser.parse_dates(phrase=slack_post_request_body.text)
     if not parse_result:
