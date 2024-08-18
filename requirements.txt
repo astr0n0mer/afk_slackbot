@@ -20,6 +20,8 @@ h11==0.14.0
     # via uvicorn
 idna==3.7
     # via anyio
+motor==3.5.1
+    # via -r requirements.in
 parsedatetime==2.6
     # via afk-parser
 pydantic==2.8.2
@@ -27,6 +29,8 @@ pydantic==2.8.2
 pydantic-core==2.20.1
     # via pydantic
 pymongo==4.8.0
+    # via motor
+python-dotenv==1.0.1
     # via -r requirements.in
 python-multipart==0.0.9
     # via -r requirements.in

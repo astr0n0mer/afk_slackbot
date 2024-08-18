@@ -1,7 +1,8 @@
 fastapi
-pymongo
+motor
+python-dotenv
 python-multipart
 uvicorn
 
-git+https://github.com/astr0n0mer/afk_parser.git@stable#egg=afk_parser
 slack_sdk
+git+https://github.com/astr0n0mer/afk_parser.git@stable#egg=afk_parser

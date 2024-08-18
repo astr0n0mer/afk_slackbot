@@ -1,4 +1,4 @@
-# AFKBot
+# AFKbot
 
 ## Appreciations
 

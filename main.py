@@ -1,17 +1,17 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
-from pathlib import Path
 
+from afk_parser.afk_parser import AFKParser
 from fastapi import FastAPI, HTTPException, Request
 from starlette import status
 
-from afk_parser.afk_parser import AFKParser
 from lib.models import AFKRecord, SlackPostRequestBody
-from lib.services.jsonl_service import JSONLService
+from lib.services.database_service import DatabaseService
+from lib.services.mongo_db import afk_records
 from lib.utils import format_datetime
 
-store_service: JSONLService = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
-afk_records: list[AFKRecord] = []
+# storage_service: JSONLService = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
+storage_service = DatabaseService(collection=afk_records)
 parser: AFKParser = AFKParser()
 server_started_at = datetime.now()
 
@@ -51,7 +51,7 @@ def get_response(records: list[AFKRecord]) -> dict:
 
 
 @app.get("/health-check")
-def read_health():
+async def read_health():
     return {"server_started_at": server_started_at.strftime("%Y-%m-%d %H:%M:%S"), "status": "active"}
 
 
@@ -67,7 +67,7 @@ async def handle_slack_bot_input(request: Request):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     if slack_post_request_body.text == "list":
-        afk_records = await store_service.read(team_ids=[slack_post_request_body.team_id])
+        afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return get_response(records=afk_records) if len(afk_records) > 0 else "No AFK records"
 
     parse_result = parser.parse_dates(phrase=slack_post_request_body.text)
@@ -80,11 +80,11 @@ async def handle_slack_bot_input(request: Request):
         start_datetime=parse_result[0].timestamp(),
         end_datetime=parse_result[1].timestamp(),
     )
-    existing_afk_records = await store_service.read(
+    existing_afk_records = await storage_service.read(
         team_ids=[slack_post_request_body.team_id],
         user_ids=[slack_post_request_body.user_id],
     )
-    await store_service.write(
+    await storage_service.write(
         records=[afk_record],
     )  #! just for demo, in production, the below commented code will be used
     # await store_service.update(
@@ -93,5 +93,4 @@ async def handle_slack_bot_input(request: Request):
     #     upsert=True,
     # )
     response = get_response(records=[afk_record])
-    print(f"{response=}")
     return response

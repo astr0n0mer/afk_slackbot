@@ -4,6 +4,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+AFKRecord_VERSION = 1
+
 
 class AFKStatus(Enum):
     ACTIVE = "active"
@@ -29,6 +31,7 @@ class SlackPostRequestBody(BaseModel):
 class AFKRecord(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()), description="")
     created: float = Field(default_factory=lambda: datetime.now(tz=UTC).timestamp())
+    version: int = Field(default=AFKRecord_VERSION, description="")
     team_id: str = Field(description="")
     team_domain: str = Field(description="")
     channel_id: str = Field(description="")
