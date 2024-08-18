@@ -8,4 +8,4 @@ load_dotenv()
 client = AsyncIOMotorClient(os.environ["MONGODB_URI"])
 db = client.afk_slackbot
 
-afk_records = db.afk_records
+afk_records_collection = db.afk_records

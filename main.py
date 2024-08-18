@@ -4,15 +4,15 @@ from http import HTTPStatus
 
 from afk_parser.afk_parser import AFKParser
 from fastapi import FastAPI, HTTPException, Request, responses
-from starlette import status
+from starlette import exceptions, status
 
 from lib.models import AFKRecord, SlackPostRequestBody
 from lib.services.database_service import DatabaseService
-from lib.services.mongo_db import afk_records
+from lib.services.mongo_db import afk_records_collection
 from lib.utils import format_datetime
 
 # storage_service: JSONLService = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
-storage_service = DatabaseService(collection=afk_records)
+storage_service = DatabaseService(collection=afk_records_collection)
 parser: AFKParser = AFKParser()
 server_started_at = datetime.now()
 
@@ -56,9 +56,16 @@ def read_health():
     return {"server_started_at": server_started_at.strftime("%Y-%m-%d %H:%M:%S"), "status": "ok"}
 
 
-@app.exception_handler(HTTPStatus.NOT_FOUND)
-async def not_found_handler(request: Request, exc: Exception):
-    return responses.RedirectResponse(url="/health-check")
+# @app.exception_handler(HTTPStatus.NOT_FOUND)
+# async def not_found_handler(request: Request, exc: Exception):
+#     return responses.RedirectResponse(url="/health-check")
+
+
+@app.exception_handler(exceptions.HTTPException)
+async def not_found_handler(request: Request, exc: exceptions.HTTPException):
+    if exc.status_code == HTTPStatus.NOT_FOUND:
+        return responses.RedirectResponse(url="/health-check")
+    return responses.JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
 
 @app.post("/v1/slack_bot")
