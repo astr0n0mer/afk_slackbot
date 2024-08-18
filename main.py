@@ -51,7 +51,7 @@ def get_response(records: list[AFKRecord]) -> dict:
 
 
 @app.get("/health-check")
-async def read_health():
+def read_health():
     return {"server_started_at": server_started_at.strftime("%Y-%m-%d %H:%M:%S"), "status": "active"}
 
 

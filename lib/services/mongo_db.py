@@ -3,10 +3,9 @@ import os
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-if not load_dotenv():
-    raise OSError("No environment variables found")
+load_dotenv()
 
-client = AsyncIOMotorClient(os.getenv("MONGODB_URI", None))
+client = AsyncIOMotorClient(os.environ["MONGODB_URI"])
 db = client.afk_slackbot
 
 afk_records = db.afk_records
