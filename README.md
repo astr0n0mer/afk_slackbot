@@ -1,13 +1,26 @@
 # AFKbot
 
-## Request Flow
+## Sequence Diagram
+
+<!-- ```mermaid -->
+<!-- flowchart TD -->
+<!--     SFE[Slack App] --> |1. Slash command trigger| F[FastAPI Server] -->
+<!--     F <--> |2. Incoming request authentication| S[Slack API] -->
+<!--     F <--> |3. Parsing datetime| L[afk_parser] -->
+<!--     F <--> |4. Read/Write DB| D[MongoDB] -->
+<!--     F --> |5. Response Message| SFE -->
+<!-- ``` -->
 
 ```mermaid
-flowchart TD
-    SFE[Slack App] --> |1. Slash command trigger| F[FastAPI Server]
-    F <--> |2. POST Request authentication| S[Slack API]
-    F <--> |3. Parsing datetime| L[afk_parser]
-    F <--> |4. Read/Write DB| D[MongoDB]
+sequenceDiagram
+    Slack App->>+FastAPI: Slash command
+    %% FastAPI->>Slack API: Validate slash command
+    %% Slack API-->>FastAPI: Validate slash command
+    FastAPI->>afk_parser: Parse AFK datetimes
+    afk_parser-->>FastAPI: 
+    FastAPI->>MongoDB: Read/Write records
+    MongoDB-->>FastAPI: 
+    FastAPI-->>Slack App: Slash command response
 ```
 
 ## Appreciations
