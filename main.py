@@ -81,10 +81,10 @@ async def handle_slack_bot_input(request: Request):
     except:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    if slack_post_request_body.text.strip().lower() == SlashSubcommand.LIST:
+    if slack_post_request_body.text.strip().lower() == SlashSubcommand.LIST.value:
         afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return get_response(records=afk_records) if len(afk_records) > 0 else "No AFK records"
-    elif slack_post_request_body.text.strip().lower() == SlashSubcommand.CLEAR:
+    elif slack_post_request_body.text.strip().lower() == SlashSubcommand.CLEAR.value:
         records_updated = await storage_service.clear_afk_status(
             team_id=slack_post_request_body.team_id,
             user_id=slack_post_request_body.user_id,
