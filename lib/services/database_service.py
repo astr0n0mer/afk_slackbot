@@ -49,7 +49,7 @@ class DatabaseService:
         )
         return update_result.modified_count
 
-    async def clear_afk(self, team_id: str, user_id: str) -> int:
+    async def clear_afk_status(self, team_id: str, user_id: str) -> int:
         filter = {"team_id": team_id, "user_id": user_id, "status": AFKStatus.ACTIVE.value}
         update_result = await self.collection.update_many(
             filter=filter,

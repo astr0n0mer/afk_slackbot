@@ -1,12 +1,14 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime
 from http import HTTPStatus
 
+import uvicorn
 from afk_parser.afk_parser import AFKParser
 from fastapi import FastAPI, HTTPException, Request, responses
 from starlette import exceptions, status
 
-from lib.models import AFKRecord, SlackPostRequestBody
+from lib.models import AFKRecord, SlackPostRequestBody, SlashSubcommand
 from lib.services.database_service import DatabaseService
 from lib.services.mongo_db import afk_records_collection
 from lib.utils import format_datetime
@@ -17,14 +19,14 @@ parser: AFKParser = AFKParser()
 server_started_at = datetime.now()
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    #! code to run before startup
-    # TODO: setup DB connection here
-    # globals()["store_service"] = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
-    # globals()["parser"] = AFKParser()
-    yield
-    #! code to run after shutdown
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     #! code to run before startup
+#     # TODO: setup DB connection here
+#     # globals()["store_service"] = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
+#     # globals()["parser"] = AFKParser()
+#     yield
+#     #! code to run after shutdown
 
 
 # app = FastAPI(lifespan=lifespan)
@@ -62,7 +64,7 @@ def read_health():
 
 
 @app.exception_handler(exceptions.HTTPException)
-async def not_found_handler(request: Request, exc: exceptions.HTTPException):
+def not_found_handler(request: Request, exc: exceptions.HTTPException):
     if exc.status_code == HTTPStatus.NOT_FOUND:
         return responses.RedirectResponse(url="/health-check")
     return responses.JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
@@ -79,11 +81,11 @@ async def handle_slack_bot_input(request: Request):
     except:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    if slack_post_request_body.text == "list":
+    if slack_post_request_body.text.strip().lower() == SlashSubcommand.LIST:
         afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return get_response(records=afk_records) if len(afk_records) > 0 else "No AFK records"
-    elif slack_post_request_body.text == "clear":
-        records_updated = await storage_service.clear_afk(
+    elif slack_post_request_body.text.strip().lower() == SlashSubcommand.CLEAR:
+        records_updated = await storage_service.clear_afk_status(
             team_id=slack_post_request_body.team_id,
             user_id=slack_post_request_body.user_id,
         )
@@ -103,17 +105,15 @@ async def handle_slack_bot_input(request: Request):
         start_datetime=parse_result[0].timestamp(),
         end_datetime=parse_result[1].timestamp(),
     )
-    existing_afk_records = await storage_service.read(
-        team_ids=[slack_post_request_body.team_id],
-        user_ids=[slack_post_request_body.user_id],
-    )
-    await storage_service.write(
-        records=[afk_record],
-    )  #! just for demo, in production, the below commented code will be used
-    # await store_service.update(
-    #     records=[record.model_copy(update={"status": AFKStatus.CANCELLED.value}) for record in existing_afk_records]
-    #     + [afk_record],
-    #     upsert=True,
-    # )
+    # TODO: uncomment before running in production
+    # await storage_service.clear_afk_status(team_id=afk_record.team_id, user_id=afk_record.user_id)
+    await storage_service.write(records=[afk_record])
     response = get_response(records=[afk_record])
     return response
+
+
+if __name__ == "__main__":
+    event_loop = asyncio.get_event_loop()
+    config = uvicorn.Config(app=app, loop=event_loop, reload=True, server_header=False)
+    server = uvicorn.Server(config=config)
+    event_loop.run_until_complete(server.serve())

@@ -7,6 +7,10 @@ from pydantic import BaseModel, Field
 AFKRecord_VERSION = 1
 
 
+class SlashSubcommand(Enum):
+    LIST = "list"
+    CLEAR = "clear"
+
 class AFKStatus(Enum):
     ACTIVE = "active"
     CANCELLED = "cancelled"
