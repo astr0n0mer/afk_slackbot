@@ -1,17 +1,23 @@
 import asyncio
-from contextlib import asynccontextmanager
+import os
 from datetime import datetime
+from pathlib import Path
 from http import HTTPStatus
 
 import uvicorn
 from afk_parser.afk_parser import AFKParser
 from fastapi import FastAPI, HTTPException, Request, responses
 from starlette import exceptions, status
+from dotenv import load_dotenv
 
 from lib.models import AFKRecord, SlackPostRequestBody, SlashSubcommand
 from lib.services.database_service import DatabaseService
 from lib.services.mongo_db import afk_records_collection
 from lib.utils import format_datetime
+
+load_dotenv()
+if os.path.exists(path="/etc/secrets/.env"):
+    load_dotenv("/etc/secrets/.env")
 
 # storage_service: JSONLService = JSONLService(filepath=Path("./storage/afk_log.jsonl"))
 storage_service = DatabaseService(collection=afk_records_collection)
@@ -114,6 +120,13 @@ async def handle_slack_bot_input(request: Request):
 
 if __name__ == "__main__":
     event_loop = asyncio.get_event_loop()
-    config = uvicorn.Config(app=app, loop=event_loop, reload=True, server_header=False)
+    config = uvicorn.Config(
+        app=app,
+        loop=event_loop,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 8000)),
+        reload=True,
+        server_header=False,
+    )
     server = uvicorn.Server(config=config)
     event_loop.run_until_complete(server.serve())
