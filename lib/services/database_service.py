@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Sequence
 
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -20,7 +20,7 @@ class DatabaseService:
         read_from: datetime | None = None,
     ) -> list[AFKRecord]:
         status_strings = [s.value for s in (status or [AFKStatus.ACTIVE])]
-        read_from_timestamp = (read_from or datetime.now()).timestamp()
+        read_from_timestamp = (read_from or datetime.now(tz=UTC).replace(tzinfo=None)).timestamp()
 
         filter = (
             ({"id": {"$in": ids}} if ids else {})

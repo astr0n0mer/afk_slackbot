@@ -1,7 +1,9 @@
+babel
 fastapi
 motor
 python-dotenv
 python-multipart
+requests
 uvicorn
 
 slack_sdk
