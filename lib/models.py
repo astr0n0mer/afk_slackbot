@@ -16,6 +16,7 @@ class SlashSubcommand(Enum):
     ADD = "add"
     CLEAR = "clear"
     LIST = "list"
+    TABLE = "table"
 
 
 class AFKRecord(BaseModel):

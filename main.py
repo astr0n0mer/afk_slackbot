@@ -40,29 +40,30 @@ server_started_at = datetime.now()
 app = FastAPI()
 
 
-# def get_response(records: list[AFKRecordToPrint]) -> dict:
-#     return {
-#         "blocks": [
-#             {
-#                 "type": "section",
-#                 "fields": [
-#                     {
-#                         "type": "mrkdwn",
-#                         "text": "\n".join(
-#                             (
-#                                 f"*{record.real_name}* (afk {record.text})",
-#                                 f"{record.start_datetime} --> {record.end_datetime}",
-#                             ),
-#                         ),
-#                     }
-#                     for record in records
-#                 ],
-#             },
-#         ],
-#     }
+def get_list_response(records: list[AFKRecordToPrint]) -> dict:
+    return {
+        "blocks": [
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "\n".join(
+                            (
+                                f"*{record.real_name}* (afk {record.text})",
+                                f"From: {record.start_datetime}",
+                                f"To: {record.end_datetime}",
+                            ),
+                        ),
+                    }
+                    for record in records
+                ],
+            },
+        ],
+    }
 
 
-def get_response(records: list[AFKRecordToPrint]) -> dict:
+def get_table_response(records: list[AFKRecordToPrint]) -> dict:
     max_len_real_name = 0
     max_len_start_datetime = 0
     max_len_end_datetime = 0
@@ -140,7 +141,19 @@ async def handle_slack_bot_input(request: Request):
     if slack_post_request_body.text.strip().lower() == SlashSubcommand.LIST.value:
         afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return (
-            get_response(
+            get_list_response(
+                records=format_afk_records_to_print(
+                    afk_records=sorted(afk_records, key=lambda r: r.end_datetime),
+                    user_info=user_info,
+                ),
+            )
+            if len(afk_records) > 0
+            else "No AFK records"
+        )
+    if slack_post_request_body.text.strip().lower() == SlashSubcommand.TABLE.value:
+        afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
+        return (
+            get_table_response(
                 records=format_afk_records_to_print(
                     afk_records=sorted(afk_records, key=lambda r: r.end_datetime),
                     user_info=user_info,
@@ -169,6 +182,7 @@ async def handle_slack_bot_input(request: Request):
     afk_record = AFKRecord(
         **slack_post_request_body.model_dump(),
         start_datetime=(parse_result[0] - current_system_offset).timestamp(),
+        # TODO: if end_datetime is end_of_day, then don't modify it
         end_datetime=(parse_result[1] - current_system_offset).timestamp(),
     )
 
@@ -176,7 +190,7 @@ async def handle_slack_bot_input(request: Request):
         await storage_service.clear_afk_status(team_id=afk_record.team_id, user_id=afk_record.user_id)
 
     await storage_service.write(records=[afk_record])
-    response = get_response(records=[format_afk_record_to_print(afk_record=afk_record, user_info=user_info)])
+    response = get_table_response(records=[format_afk_record_to_print(afk_record=afk_record, user_info=user_info)])
     return response
 
 
