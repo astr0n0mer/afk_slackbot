@@ -1,6 +1,6 @@
 import asyncio
 import os
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 
 import uvicorn
@@ -38,70 +38,6 @@ server_started_at = datetime.now()
 
 # app = FastAPI(lifespan=lifespan)
 app = FastAPI()
-
-
-def get_list_response(records: list[AFKRecordToPrint]) -> dict:
-    return {
-        "blocks": [
-            {
-                "type": "section",
-                "fields": [
-                    {
-                        "type": "mrkdwn",
-                        "text": "\n".join(
-                            (
-                                f"*{record.real_name}* (afk {record.text})",
-                                f"From: {record.start_datetime}",
-                                f"To: {record.end_datetime}",
-                            ),
-                        ),
-                    }
-                    for record in records
-                ],
-            },
-        ],
-    }
-
-
-def get_table_response(records: list[AFKRecordToPrint]) -> dict:
-    max_len_real_name = 0
-    max_len_start_datetime = 0
-    max_len_end_datetime = 0
-    for record in records:
-        max_len_real_name = max(max_len_real_name, len(record.real_name))
-        max_len_start_datetime = max(max_len_start_datetime, len(record.start_datetime))
-        max_len_end_datetime = max(max_len_end_datetime, len(record.end_datetime))
-    header_block = " | ".join(
-        (
-            "User".center(max_len_real_name, " "),
-            "AFK Start".center(max_len_start_datetime, " "),
-            "AFK End".center(max_len_end_datetime, " "),
-        ),
-    )
-    divider_block = " | ".join(("-" * max_len_real_name, "-" * max_len_start_datetime, "-" * max_len_end_datetime))
-    table_block = [
-        " | ".join(
-            (
-                record.real_name.ljust(max_len_real_name, " "),
-                record.start_datetime.ljust(max_len_start_datetime, " "),
-                record.end_datetime.ljust(max_len_end_datetime, " "),
-            ),
-        )
-        for record in records
-    ]
-
-    return {
-        "blocks": [
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "```" + "\n".join((header_block, divider_block, *table_block)) + "```",
-                },
-            },
-        ],
-    }
-
 
 @app.get("/health-check")
 def read_health():
@@ -141,7 +77,7 @@ async def handle_slack_bot_input(request: Request):
     if slack_post_request_body.text.strip().lower() == SlashSubcommand.LIST.value:
         afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return (
-            get_list_response(
+            SlackService.get_list_response(
                 records=format_afk_records_to_print(
                     afk_records=sorted(afk_records, key=lambda r: r.end_datetime),
                     user_info=user_info,
@@ -153,7 +89,7 @@ async def handle_slack_bot_input(request: Request):
     if slack_post_request_body.text.strip().lower() == SlashSubcommand.TABLE.value:
         afk_records = await storage_service.read(team_ids=[slack_post_request_body.team_id])
         return (
-            get_table_response(
+            SlackService.get_table_response(
                 records=format_afk_records_to_print(
                     afk_records=sorted(afk_records, key=lambda r: r.end_datetime),
                     user_info=user_info,
@@ -190,7 +126,7 @@ async def handle_slack_bot_input(request: Request):
         await storage_service.clear_afk_status(team_id=afk_record.team_id, user_id=afk_record.user_id)
 
     await storage_service.write(records=[afk_record])
-    response = get_table_response(records=[format_afk_record_to_print(afk_record=afk_record, user_info=user_info)])
+    response = SlackService.get_list_response(records=[format_afk_record_to_print(afk_record=afk_record, user_info=user_info)])
     return response
 
 

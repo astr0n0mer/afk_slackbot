@@ -22,3 +22,8 @@ install: .venv
 install_dev: install
 	source .venv/bin/activate && \
 	pip install -r requirements-dev.txt
+
+.PHONY: run
+run:
+	. .venv/bin/activate && \
+	python main.py

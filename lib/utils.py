@@ -26,8 +26,8 @@ def format_afk_record_to_print(afk_record: AFKRecord, user_info: UserInfo) -> AF
     return AFKRecordToPrint(
         text=afk_record.text,
         real_name=user_info.real_name,
-        start_datetime=dates.format_datetime(datetime.fromtimestamp(afk_record.start_datetime) + delta, locale=locale),
-        end_datetime=dates.format_datetime(datetime.fromtimestamp(afk_record.end_datetime) + delta, locale=locale),
+        start_datetime=dates.format_datetime(datetime.fromtimestamp(afk_record.start_datetime) + delta, locale=locale, format="short"),
+        end_datetime=dates.format_datetime(datetime.fromtimestamp(afk_record.end_datetime) + delta, locale=locale, format="short"),
     )
 
 

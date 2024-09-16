@@ -20,8 +20,9 @@
     "oauth_config": {
         "scopes": {
             "bot": [
+                "chat:write",
                 "commands",
-                "chat:write"
+                "users:read"
             ]
         }
     },
