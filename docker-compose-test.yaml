@@ -1,13 +1,11 @@
-version: '3.8'
-
 services:
-  app:
+  tester:
     build:
       context: .
       dockerfile: Dockerfile.test
     container_name: afk_slackbot_test_app
-    environment:
-      MONGODB_URI: mongodb://mongo:27017/test_db
+    env_file:
+      - .env.test
     networks:
       - afk_slackbot_test_network
     # Automatically remove the container when it exits

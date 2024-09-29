@@ -15,7 +15,9 @@ class WriteMode(Enum):
 class JSONLService:
     def __init__(self, filepath: Path):
         if filepath.suffix.lower() != ".jsonl":
-            raise ValueError(f"Invalid filepath: {filepath}. Only .jsonl files supported")
+            raise ValueError(
+                f"Invalid filepath: {filepath}. Only .jsonl files supported"
+            )
         self.filepath = filepath
 
     async def read(
@@ -44,20 +46,26 @@ class JSONLService:
                     read_records.append(record)
         return read_records
 
-    async def write(self, records: Sequence[AFKRecord], mode: WriteMode = WriteMode.APPEND) -> Sequence[AFKRecord]:
+    async def write(
+        self, records: Sequence[AFKRecord], mode: WriteMode = WriteMode.APPEND
+    ) -> Sequence[AFKRecord]:
         json_string = "\n".join(json.dumps(record.model_dump()) for record in records)
         with open(self.filepath, mode.value) as file:
             file.write(json_string + "\n")
         return records
 
-    async def update(self, records: Sequence[AFKRecord], upsert=False) -> Sequence[AFKRecord]:
+    async def update(
+        self, records: Sequence[AFKRecord], upsert=False
+    ) -> Sequence[AFKRecord]:
         records_from_store = await self.read(
             status=[AFKStatus.ACTIVE, AFKStatus.CANCELLED],
             read_from=datetime.min.replace(year=1970),
         )
         records_to_update_map = {record.id: record for record in records}
         updated_records = [
-            records_to_update_map.pop(record.id) if record.id in records_to_update_map else record
+            records_to_update_map.pop(record.id)
+            if record.id in records_to_update_map
+            else record
             # records_to_update_map.get(record.id, record)
             for record in records_from_store
         ] + (list(records_to_update_map.values()) if upsert else [])

@@ -1,13 +1,17 @@
+.PHONY: dev
+dev: .venv
+	. .venv/bin/activate && \
+	pip install -r requirements-dev.txt
+	python main.py
+
 .venv:
 	python -m venv .venv
 
-.PHONY: requirements.txt
-requirements.txt: .venv
+requirements.txt: .venv requirements.in
 	. .venv/bin/activate && \
 	pip-compile --output-file requirements.txt requirements.in
 
-.PHONY: requirements-dev.txt
-requirements-dev.txt: .venv
+requirements-dev.txt: .venv requirements.in requirements-dev.in
 	. .venv/bin/activate && \
 	pip-compile --output-file requirements-dev.txt requirements.in requirements-dev.in
 
@@ -19,13 +23,8 @@ install: .venv
 	. .venv/bin/activate && \
 	pip install -r requirements.txt
 
-.PHONY: install_dev
-install_dev: install
-	. .venv/bin/activate && \
-	pip install -r requirements-dev.txt
-
 .PHONY: run
-run:
+run: install
 	. .venv/bin/activate && \
 	python main.py
 
@@ -36,3 +35,17 @@ test:
 .PHONY: cleanup
 cleanup:
 	docker-compose --file ./docker-compose-test.yaml down --remove-orphans
+
+.PHONY: cleanup_deep
+cleanup_deep: cleanup
+	docker rmi afk_slackbot-tester
+
+.PHONY: lint
+lint:
+	. .venv/bin/activate && \
+	pyright .
+
+.PHONY: format
+format:
+	. .venv/bin/activate && \
+	ruff format .

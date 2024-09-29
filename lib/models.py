@@ -32,8 +32,12 @@ class AFKRecord(BaseModel):
     command: str = Field(description="Slack's slash command used to create this record")
     text: str = Field(description="Argument of the triggerer slash command")
     trigger_id: str = Field(description="")
-    start_datetime: float = Field(description="This timestamp should not be timezone aware (atleast for now)")
-    end_datetime: float = Field(description="This timestamp should not be timezone aware (atleast for now)")
+    start_datetime: float = Field(
+        description="This timestamp should not be timezone aware (atleast for now)"
+    )
+    end_datetime: float = Field(
+        description="This timestamp should not be timezone aware (atleast for now)"
+    )
     status: str = Field(default=AFKStatus.ACTIVE.value, description="")
 
 

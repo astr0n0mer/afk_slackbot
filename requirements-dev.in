@@ -1,2 +1,5 @@
 pip-tools
+pyright
 pytest
+pytest-asyncio
+ruff

@@ -6,4 +6,4 @@ COPY . /afk_slackbot
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements-dev.txt
 
-CMD ["pytest", "--disable-warnings", "tests"]
+CMD ["pytest", "--disable-warnings", "tests", "-vv"]

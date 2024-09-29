@@ -20,7 +20,9 @@ class DatabaseService:
         read_from: datetime | None = None,
     ) -> list[AFKRecord]:
         status_strings = [s.value for s in (status or [AFKStatus.ACTIVE])]
-        read_from_timestamp = (read_from or datetime.now(tz=UTC).replace(tzinfo=None)).timestamp()
+        read_from_timestamp = (
+            read_from or datetime.now(tz=UTC).replace(tzinfo=None)
+        ).timestamp()
 
         filter = (
             ({"id": {"$in": ids}} if ids else {})
@@ -34,10 +36,14 @@ class DatabaseService:
         records = [AFKRecord.model_validate(object) for object in objects]
         return records
 
-    async def write(self, records: Sequence[AFKRecord], mode: WriteMode = WriteMode.APPEND) -> list[Any]:
+    async def write(
+        self, records: Sequence[AFKRecord], mode: WriteMode = WriteMode.APPEND
+    ) -> list[Any]:
         if mode == WriteMode.OVERWRITE:
-            delete_result = await self.collection.delete_many(filter={})
-        insert_result = await self.collection.insert_many(documents=(record.model_dump() for record in records))
+            _ = await self.collection.delete_many(filter={})
+        insert_result = await self.collection.insert_many(
+            documents=(record.model_dump() for record in records)
+        )
         return insert_result.inserted_ids
 
     async def update(self, records: Sequence[AFKRecord], upsert=False) -> int:
@@ -50,7 +56,11 @@ class DatabaseService:
         return update_result.modified_count
 
     async def clear_afk_status(self, team_id: str, user_id: str) -> int:
-        filter = {"team_id": team_id, "user_id": user_id, "status": AFKStatus.ACTIVE.value}
+        filter = {
+            "team_id": team_id,
+            "user_id": user_id,
+            "status": AFKStatus.ACTIVE.value,
+        }
         update_result = await self.collection.update_many(
             filter=filter,
             update={"$set": {"status": AFKStatus.CANCELLED.value}},

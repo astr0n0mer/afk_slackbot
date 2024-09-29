@@ -3,7 +3,6 @@ import requests
 from lib.models import UserInfo, AFKRecordToPrint
 
 
-
 class SlackService:
     def __init__(self, token: str):
         self.token = token
@@ -54,7 +53,9 @@ class SlackService:
         max_len_end_datetime = 0
         for record in records:
             max_len_real_name = max(max_len_real_name, len(record.real_name))
-            max_len_start_datetime = max(max_len_start_datetime, len(record.start_datetime))
+            max_len_start_datetime = max(
+                max_len_start_datetime, len(record.start_datetime)
+            )
             max_len_end_datetime = max(max_len_end_datetime, len(record.end_datetime))
         header_block = " | ".join(
             (
@@ -63,7 +64,13 @@ class SlackService:
                 "AFK End".center(max_len_end_datetime, " "),
             ),
         )
-        divider_block = " | ".join(("-" * max_len_real_name, "-" * max_len_start_datetime, "-" * max_len_end_datetime))
+        divider_block = " | ".join(
+            (
+                "-" * max_len_real_name,
+                "-" * max_len_start_datetime,
+                "-" * max_len_end_datetime,
+            )
+        )
         table_block = [
             " | ".join(
                 (
@@ -81,7 +88,9 @@ class SlackService:
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "```" + "\n".join((header_block, divider_block, *table_block)) + "```",
+                        "text": "```"
+                        + "\n".join((header_block, divider_block, *table_block))
+                        + "```",
                     },
                 },
             ],
