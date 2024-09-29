@@ -6,20 +6,6 @@ from babel import dates
 from lib.models import AFKRecord, AFKRecordToPrint, UserInfo
 
 
-# TODO: this is unused, can probably remove
-def format_datetime(d: datetime) -> str:
-    is_today = d.date().__eq__(datetime.today())
-    is_tomorrow = d.date().__eq__(datetime.today() + timedelta(days=1))
-    string = (
-        d.strftime("Today %I:%M%p")
-        if is_today
-        else d.strftime("Tomorrow %I:%M%p")
-        if is_tomorrow
-        else d.strftime("%Y-%m-%d %I:%M%p")
-    )
-    return string
-
-
 def format_afk_record_to_print(afk_record: AFKRecord, user_info: UserInfo) -> AFKRecordToPrint:
     delta = timedelta(seconds=user_info.tz_offset)
     locale = user_info.locale.replace("-", "_")

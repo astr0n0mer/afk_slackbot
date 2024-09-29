@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: afk_slackbot_test_app
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/test_db
+    networks:
+      - afk_slackbot_test_network
+    # Automatically remove the container when it exits
+    restart: "no"
+    # Ensures the container is removed after the testing completes
+    stop_grace_period: 10s
+    stdin_open: true
+    tty: true
+    volumes:
+      - .:/afk_slackbot
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:8.0.0
+    container_name: afk_slackbot_test_db
+    ports:
+      - "27017:27017"
+    networks:
+      - afk_slackbot_test_network
+    restart: "no"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:  # Named volume to persist data during the test
+
+networks:
+  afk_slackbot_test_network:
+    driver: bridge

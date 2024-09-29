@@ -3,27 +3,36 @@
 
 .PHONY: requirements.txt
 requirements.txt: .venv
-	source .venv/bin/activate && \
+	. .venv/bin/activate && \
 	pip-compile --output-file requirements.txt requirements.in
 
 .PHONY: requirements-dev.txt
 requirements-dev.txt: .venv
-	source .venv/bin/activate && \
-	pip-compile --output-file requirements-dev.txt requirements-dev.in
+	. .venv/bin/activate && \
+	pip-compile --output-file requirements-dev.txt requirements.in requirements-dev.in
 
+.PHONY: requirements
 requirements: requirements.txt requirements-dev.txt
 
 .PHONY: install
 install: .venv
-	source .venv/bin/activate && \
+	. .venv/bin/activate && \
 	pip install -r requirements.txt
 
 .PHONY: install_dev
 install_dev: install
-	source .venv/bin/activate && \
+	. .venv/bin/activate && \
 	pip install -r requirements-dev.txt
 
 .PHONY: run
 run:
 	. .venv/bin/activate && \
 	python main.py
+
+.PHONY: test
+test:
+	docker-compose --file ./docker-compose-test.yaml up --abort-on-container-exit --remove-orphans
+
+.PHONY: cleanup
+cleanup:
+	docker-compose --file ./docker-compose-test.yaml down --remove-orphans
