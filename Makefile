@@ -1,8 +1,5 @@
 .PHONY: dev
-dev: .venv
-	. .venv/bin/activate && \
-	pip install -r requirements-dev.txt
-	python main.py
+dev: install_dev run
 
 .venv:
 	python -m venv .venv
@@ -22,6 +19,11 @@ requirements: requirements.txt requirements-dev.txt
 install: .venv
 	. .venv/bin/activate && \
 	pip install -r requirements.txt
+
+.PHONY: install_dev
+install_dev: .venv
+	. .venv/bin/activate && \
+	pip install -r requirements-dev.txt
 
 .PHONY: run
 run: install

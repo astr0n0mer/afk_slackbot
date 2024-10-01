@@ -126,7 +126,10 @@ async def handle_slack_bot_input(request: Request):
             else "No AFK records"
         )
 
-    parse_result = parser.parse_dates(phrase=slack_post_request_body.text)
+    parse_result = parser.parse_dates(
+        phrase=slack_post_request_body.text,
+        source_time=datetime.now(tz=UTC) + timedelta(seconds=user_info.tz_offset),
+    )
     if not parse_result:
         # TODO: trigger error handling mechanism
         return {"foo": "bar"}
@@ -134,9 +137,9 @@ async def handle_slack_bot_input(request: Request):
     current_system_offset = datetime.now() - datetime.now(tz=UTC).replace(tzinfo=None)
     afk_record = AFKRecord(
         **slack_post_request_body.model_dump(),
-        start_datetime=(parse_result[0] - current_system_offset).timestamp(),
+        start_datetime=(parse_result[0]).timestamp(),
         # TODO: if end_datetime is end_of_day, then don't modify it
-        end_datetime=(parse_result[1] - current_system_offset).timestamp(),
+        end_datetime=(parse_result[1]).timestamp(),
     )
 
     if (
