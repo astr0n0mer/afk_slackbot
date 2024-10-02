@@ -128,13 +128,12 @@ async def handle_slack_bot_input(request: Request):
 
     parse_result = parser.parse_dates(
         phrase=slack_post_request_body.text,
-        source_time=datetime.now(tz=UTC) + timedelta(seconds=user_info.tz_offset),
+        tz_offset=user_info.tz_offset,
     )
     if not parse_result:
         # TODO: trigger error handling mechanism
         return {"foo": "bar"}
 
-    current_system_offset = datetime.now() - datetime.now(tz=UTC).replace(tzinfo=None)
     afk_record = AFKRecord(
         **slack_post_request_body.model_dump(),
         start_datetime=(parse_result[0]).timestamp(),
