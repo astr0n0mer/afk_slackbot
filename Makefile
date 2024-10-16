@@ -10,7 +10,7 @@ requirements.txt: .venv requirements.in
 
 requirements-dev.txt: .venv requirements.in requirements-dev.in
 	. .venv/bin/activate && \
-	pip-compile --output-file requirements-dev.txt requirements.in requirements-dev.in
+	pip-compile --output-file requirements-dev.txt requirements-dev.in
 
 .PHONY: requirements
 requirements: requirements.txt requirements-dev.txt
@@ -24,6 +24,11 @@ install: .venv
 install_dev: .venv
 	. .venv/bin/activate && \
 	pip install -r requirements-dev.txt
+
+.PHONY: upgrade_dependencies
+upgrade_dependencies:
+	pip-compile --upgrade requirements.in
+	pip-compile --upgrade requirements-dev.in
 
 .PHONY: run
 run: .venv
