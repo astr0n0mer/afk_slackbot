@@ -88,7 +88,7 @@ typing-extensions==4.12.2
     #   pyright
 urllib3==2.2.3
     # via requests
-uvicorn==0.32.0
+uvicorn==0.32.1
     # via -r requirements.in
 wheel==0.44.0
     # via pip-tools
