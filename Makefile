@@ -18,12 +18,12 @@ requirements: requirements.txt requirements-dev.txt
 .PHONY: install
 install: .venv
 	. .venv/bin/activate && \
-	pip install -r requirements.txt
+	(uv pip install -r requirements.txt || pip install -r requirements.txt)
 
 .PHONY: install_dev
 install_dev: .venv
 	. .venv/bin/activate && \
-	pip install -r requirements-dev.txt
+	(uv pip install -r requirements-dev.txt || pip install -r requirements-dev.txt)
 
 .PHONY: upgrade_dependencies
 upgrade_dependencies:

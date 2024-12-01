@@ -5,6 +5,7 @@ COPY . /afk_slackbot
 
 RUN apt update && apt install -y git
 RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install uv
+RUN uv pip install --no-cache-dir --system --requirement requirements-dev.txt
 
-CMD ["pytest", "--disable-warnings", "tests", "-vv"]
+CMD ["pytest", "tests", "-vv"]

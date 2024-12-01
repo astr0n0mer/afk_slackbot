@@ -4,3 +4,4 @@ pyright
 pytest
 pytest-asyncio
 ruff
+uv

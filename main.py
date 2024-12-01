@@ -137,7 +137,6 @@ async def handle_slack_bot_input(request: Request):
     afk_record = AFKRecord(
         **slack_post_request_body.model_dump(),
         start_datetime=(parse_result[0]).timestamp(),
-        # TODO: if end_datetime is end_of_day, then don't modify it
         end_datetime=(parse_result[1]).timestamp(),
     )
 
