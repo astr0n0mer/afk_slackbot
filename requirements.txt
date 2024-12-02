@@ -40,7 +40,7 @@ pymongo==4.9.2
     # via motor
 python-dotenv==1.0.1
     # via -r requirements.in
-python-multipart==0.0.17
+python-multipart==0.0.19
     # via -r requirements.in
 requests==2.32.3
     # via -r requirements.in
