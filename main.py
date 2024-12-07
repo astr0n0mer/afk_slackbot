@@ -14,9 +14,7 @@ from lib.command_handlers import (
     handle_table_subcommand,
 )
 from lib.models import SlackPostRequestBody, SlashSubcommand
-from lib.services.database_service import DatabaseService
-from lib.services.mongo_db import afk_records_collection
-from lib.services.slack_service import SlackService
+from lib.services import DatabaseService, SlackService, afk_records_collection
 
 _ = load_dotenv()
 #! Reading .env file when app is hosted on render.com

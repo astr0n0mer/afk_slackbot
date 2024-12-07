@@ -9,7 +9,7 @@ import pytest
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 
 from lib.models import AFKRecord, AFKRecord_VERSION, AFKStatus
-from lib.services.database_service import DatabaseService
+from lib.services import DatabaseService
 from lib.services.jsonl_service import WriteMode
 
 
@@ -45,12 +45,12 @@ def placeholder_afk_record():
 
 @pytest.mark.asyncio
 async def test_read__with_no_filters(db_service: DatabaseService):
-    result = await db_service.read()
+    result = await db_service.read({})
     assert result == []
 
 
 @pytest.mark.asyncio
-async def test_read__with_read_from_timestamp_filter(
+async def test_read__with_end_datetime_filter(
     db_service: DatabaseService, placeholder_afk_record: AFKRecord
 ):
     # Arrange
@@ -69,33 +69,7 @@ async def test_read__with_read_from_timestamp_filter(
     expected_result = [afk_records[1]]
 
     # Act
-    result = await db_service.read(read_from=now)
-
-    # Assert
-    assert result == expected_result
-
-
-@pytest.mark.asyncio
-async def test_read__with_default_read_from_timestamp_filter(
-    db_service: DatabaseService, placeholder_afk_record: AFKRecord
-):
-    # Arrange
-    now = datetime.now(tz=UTC)
-    afk_records = [
-        AFKRecord(
-            **placeholder_afk_record.model_dump(exclude={"end_datetime"}),
-            end_datetime=(now - timedelta(hours=1)).timestamp(),
-        ),
-        AFKRecord(
-            **placeholder_afk_record.model_dump(exclude={"end_datetime"}),
-            end_datetime=(now + timedelta(hours=1)).timestamp(),
-        ),
-    ]
-    _ = await db_service.write(afk_records)
-    expected_result = [afk_records[1]]
-
-    # Act
-    result = await db_service.read()
+    result = await db_service.read({"end_datetime": now, "status": [AFKStatus.ACTIVE]})
 
     # Assert
     assert result == expected_result
@@ -117,7 +91,7 @@ async def test_write__with_default_mode(
             end_datetime=(now + timedelta(hours=2)).timestamp(),
         ),
     ]
-    await db_service.write(existing_afk_records)
+    _ = await db_service.write(existing_afk_records)
     new_afk_record = AFKRecord(
         **placeholder_afk_record.model_dump(exclude={"end_datetime"}),
         end_datetime=(now + timedelta(hours=3)).timestamp(),
@@ -126,7 +100,7 @@ async def test_write__with_default_mode(
 
     # Act
     _ = await db_service.write([new_afk_record])
-    result = await db_service.read()
+    result = await db_service.read({"end_datetime": now, "status": [AFKStatus.ACTIVE]})
 
     # Assert
     assert result == expected_afk_records
@@ -148,7 +122,7 @@ async def test_write__with_overwrite_mode(
             end_datetime=(now + timedelta(hours=2)).timestamp(),
         ),
     ]
-    await db_service.write(existing_afk_records)
+    _ = await db_service.write(existing_afk_records)
     new_afk_record = AFKRecord(
         **placeholder_afk_record.model_dump(exclude={"end_datetime"}),
         end_datetime=(now + timedelta(hours=3)).timestamp(),
@@ -157,7 +131,7 @@ async def test_write__with_overwrite_mode(
 
     # Act
     _ = await db_service.write([new_afk_record], mode=WriteMode.OVERWRITE)
-    result = await db_service.read()
+    result = await db_service.read({"end_datetime": now, "status": [AFKStatus.ACTIVE]})
 
     # Assert
     assert result == expected_afk_records
@@ -196,10 +170,14 @@ async def test_clear_afk_status(
     ]
 
     # Act
-    await db_service.clear_afk_status(team_id="team_id_2", user_id=user_id)
+    _ = await db_service.clear_afk_status(
+        {"team_id": ["team_id_2"], "user_id": [user_id]}
+    )
     result = await db_service.read(
-        status=[AFKStatus.ACTIVE, AFKStatus.CANCELLED],
-        read_from=datetime.now(tz=UTC) - timedelta(hours=1),
+        {
+            "status": [AFKStatus.ACTIVE, AFKStatus.CANCELLED],
+            "end_datetime": datetime.now(tz=UTC) - timedelta(hours=1),
+        }
     )
 
     # Assert

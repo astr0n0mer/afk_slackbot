@@ -1,12 +1,20 @@
+from datetime import UTC, datetime
+
 from afk_parser.afk_parser import AFKParser
-from lib.models import AFKRecord, SlackPostRequestBody, UserInfo
-from lib.services.database_service import DatabaseService
-from lib.services.slack_service import SlackService
+
+from lib.models import AFKRecord, AFKStatus, SlackPostRequestBody, UserInfo
+from lib.services import DatabaseService, SlackService
 from lib.utils import format_afk_record_to_print, format_afk_records_to_print
 
 
 async def handle_list_subcommand(service: DatabaseService, user_info: UserInfo):
-    afk_records = await service.read(team_ids=[user_info.team_id])
+    afk_records = await service.read(
+        {
+            "end_datetime": datetime.now(tz=UTC),
+            "status": [AFKStatus.ACTIVE],
+            "team_id": [user_info.team_id],
+        }
+    )
     return (
         SlackService.get_list_response(
             records=format_afk_records_to_print(
@@ -20,7 +28,13 @@ async def handle_list_subcommand(service: DatabaseService, user_info: UserInfo):
 
 
 async def handle_table_subcommand(service: DatabaseService, user_info: UserInfo):
-    afk_records = await service.read(team_ids=[user_info.team_id])
+    afk_records = await service.read(
+        {
+            "end_datetime": datetime.now(tz=UTC),
+            "status": [AFKStatus.ACTIVE],
+            "team_id": [user_info.team_id],
+        }
+    )
     return (
         SlackService.get_table_response(
             records=format_afk_records_to_print(
@@ -35,7 +49,7 @@ async def handle_table_subcommand(service: DatabaseService, user_info: UserInfo)
 
 async def handle_clear_subcommand(service: DatabaseService, user_info: UserInfo):
     records_updated = await service.clear_afk_status(
-        team_id=user_info.team_id, user_id=user_info.id
+        {"team_id": [user_info.team_id], "user_id": [user_info.id]}
     )
     return (
         f"{records_updated} AFK record{'s' if records_updated > 1 else ''} cleared"
