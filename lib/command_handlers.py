@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from afk_parser.afk_parser import AFKParser
+from slack_sdk.models.blocks import MarkdownTextObject
 
 from lib.models import AFKRecord, AFKStatus, SlackPostRequestBody, UserInfo
 from lib.services import DatabaseService, SlackService
@@ -23,7 +24,7 @@ async def handle_list_subcommand(service: DatabaseService, user_info: UserInfo):
             ),
         )
         if len(afk_records) > 0
-        else "No AFK records"
+        else MarkdownTextObject(text="No AFK records")
     )
 
 
@@ -43,7 +44,7 @@ async def handle_table_subcommand(service: DatabaseService, user_info: UserInfo)
             ),
         )
         if len(afk_records) > 0
-        else "No AFK records"
+        else MarkdownTextObject(text="No AFK records")
     )
 
 
@@ -54,7 +55,7 @@ async def handle_clear_subcommand(service: DatabaseService, user_info: UserInfo)
     return (
         f"{records_updated} AFK record{'s' if records_updated > 1 else ''} cleared"
         if records_updated
-        else "No AFK records"
+        else MarkdownTextObject(text="No AFK records")
     )
 
 
@@ -68,7 +69,9 @@ async def handle_create_subcommand(
     )
     if not parse_result:
         # TODO: trigger error handling mechanism
-        return {"foo": "bar"}
+        return MarkdownTextObject(
+            text=f'Couldn\'t parse "{slack_post_request_body.text}", please try a simpler phrase'
+        )
 
     afk_record = AFKRecord(
         **slack_post_request_body.model_dump(),

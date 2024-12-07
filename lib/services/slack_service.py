@@ -1,7 +1,9 @@
 from typing import final
-import requests
 
-from lib.models import UserInfo, AFKRecordToPrint
+import requests
+from slack_sdk.models.blocks import MarkdownTextObject, SectionBlock
+
+from lib.models import AFKRecordToPrint, UserInfo
 
 
 @final
@@ -33,23 +35,21 @@ class SlackService:
     def get_list_response(records: list[AFKRecordToPrint]):
         return {
             "blocks": [
-                {
-                    "type": "section",
-                    "fields": [
-                        {
-                            "type": "mrkdwn",
-                            "text": "\n".join(
-                                (
+                SectionBlock(
+                    fields=[
+                        MarkdownTextObject(
+                            text="\n".join(
+                                [
                                     f"*{record.real_name}* (afk {record.text})",
                                     f"From: {record.start_datetime}",
-                                    f"To: {record.end_datetime}",
-                                ),
-                            ),
-                        }
+                                    f"Upto: {record.end_datetime}",
+                                ]
+                            )
+                        )
                         for record in records
-                    ],
-                },
-            ],
+                    ]
+                ).to_dict()
+            ]
         }
 
     @staticmethod
@@ -86,16 +86,6 @@ class SlackService:
             for record in records
         ]
 
-        return {
-            "blocks": [
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "```"
-                        + "\n".join((header_block, divider_block, *table_block))
-                        + "```",
-                    },
-                },
-            ],
-        }
+        return MarkdownTextObject(
+            text="```" + "\n".join([header_block, divider_block, *table_block]) + "```"
+        )
