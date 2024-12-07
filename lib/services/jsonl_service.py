@@ -1,8 +1,8 @@
+from collections.abc import Sequence
 import json
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Sequence
 
 from lib.models import AFKRecord, AFKStatus
 
@@ -25,7 +25,6 @@ class JSONLService:
         ids: Sequence[str] = (),
         team_ids: Sequence[str] = (),
         user_ids: Sequence[str] = (),
-        user_names: Sequence[str] = (),
         status: Sequence[AFKStatus] | None = None,
         read_from: datetime | None = None,
     ) -> list[AFKRecord]:
@@ -39,7 +38,6 @@ class JSONLService:
                     (record.id in ids if ids else True)
                     and (record.team_id in team_ids if team_ids else True)
                     and (record.user_id in user_ids if user_ids else True)
-                    and (record.user_name in user_names if user_names else True)
                     and record.status in status_strings
                     and (record.end_datetime >= read_from_timestamp)
                 ):

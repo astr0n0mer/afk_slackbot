@@ -21,7 +21,7 @@ async def db_service():
 
     service = DatabaseService(collection=collection)
     yield service
-    await collection.delete_many({})
+    _ = await collection.delete_many({})
     client.close()
 
 
@@ -32,11 +32,8 @@ def placeholder_afk_record():
         created=datetime.now(tz=UTC).timestamp(),
         version=AFKRecord_VERSION,
         team_id="team_id_0",
-        team_domain="team_domain_0",
         channel_id="channel_id_0",
-        channel_name="channel_name_0",
         user_id="user_id_0",
-        user_name="user_name_0",
         command="command_0",
         text="text_0",
         trigger_id="trigger_id_0",
@@ -68,7 +65,7 @@ async def test_read__with_read_from_timestamp_filter(
             end_datetime=(now + timedelta(hours=1)).timestamp(),
         ),
     ]
-    await db_service.write(afk_records)
+    _ = await db_service.write(afk_records)
     expected_result = [afk_records[1]]
 
     # Act
@@ -94,7 +91,7 @@ async def test_read__with_default_read_from_timestamp_filter(
             end_datetime=(now + timedelta(hours=1)).timestamp(),
         ),
     ]
-    await db_service.write(afk_records)
+    _ = await db_service.write(afk_records)
     expected_result = [afk_records[1]]
 
     # Act
@@ -128,7 +125,7 @@ async def test_write__with_default_mode(
     expected_afk_records = existing_afk_records + [new_afk_record]
 
     # Act
-    await db_service.write([new_afk_record])
+    _ = await db_service.write([new_afk_record])
     result = await db_service.read()
 
     # Assert
@@ -159,7 +156,7 @@ async def test_write__with_overwrite_mode(
     expected_afk_records = [new_afk_record]
 
     # Act
-    await db_service.write([new_afk_record], mode=WriteMode.OVERWRITE)
+    _ = await db_service.write([new_afk_record], mode=WriteMode.OVERWRITE)
     result = await db_service.read()
 
     # Assert
@@ -190,7 +187,7 @@ async def test_clear_afk_status(
             status=AFKStatus.ACTIVE.value,
         ),
     ]
-    await db_service.write(existing_afk_records)
+    _ = await db_service.write(existing_afk_records)
     expected_afk_records = existing_afk_records[:-1] + [
         AFKRecord(
             **existing_afk_records[-1].model_dump(exclude={"status"}),

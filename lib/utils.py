@@ -1,9 +1,17 @@
+from collections.abc import Sequence
+from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
-from typing import Sequence
+from typing import Any
 
 from babel import dates
 
 from lib.models import AFKRecord, AFKRecordToPrint, UserInfo
+
+
+def typed_dict_to_mongodb_query(typed_dict: Mapping[str, Any]):
+    filters = [{k: {"$in": v} for k, v in typed_dict.items() if v}]
+    query = {"$or": filters} if filters else {}
+    return query
 
 
 def format_afk_record_to_print(

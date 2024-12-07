@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Any, Sequence
+from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorCollection
 
@@ -13,6 +14,7 @@ class DatabaseService:
 
     async def read(
         self,
+        # TODO: replace the following with a filter DTO
         ids: Sequence[str] = (),
         team_ids: Sequence[str] = (),
         user_ids: Sequence[str] = (),

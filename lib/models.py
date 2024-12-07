@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from enum import Enum
+from typing import TypedDict
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -13,7 +14,6 @@ class AFKStatus(Enum):
 
 
 class SlashSubcommand(Enum):
-    ADD = "add"
     CLEAR = "clear"
     LIST = "list"
     TABLE = "table"
@@ -22,13 +22,13 @@ class SlashSubcommand(Enum):
 class AFKRecord(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()), description="")
     created: float = Field(default_factory=lambda: datetime.now(tz=UTC).timestamp())
-    version: int = Field(default=AFKRecord_VERSION, description="")
+    version: int = Field(
+        default=AFKRecord_VERSION,
+        description="Model version for backward compatibility",
+    )
     team_id: str = Field(description="")
-    team_domain: str = Field(description="")
     channel_id: str = Field(description="")
-    channel_name: str = Field(description="")
     user_id: str = Field(description="")
-    user_name: str = Field(description="")
     command: str = Field(description="Slack's slash command used to create this record")
     text: str = Field(description="Argument of the triggerer slash command")
     trigger_id: str = Field(description="")
@@ -39,6 +39,10 @@ class AFKRecord(BaseModel):
         description="This timestamp should not be timezone aware (atleast for now)"
     )
     status: str = Field(default=AFKStatus.ACTIVE.value, description="")
+
+
+class AFKRecordFilter(TypedDict, total=False):
+    team_ids: list[str]
 
 
 class AFKRecordToPrint(BaseModel):
@@ -65,7 +69,8 @@ class SlackPostRequestBody(BaseModel):
 
 
 class UserInfo(BaseModel):
+    id: str = Field(description="User ID")
     locale: str = Field(description="User locale")
     real_name: str = Field(description="User's display name on Slack")
-    tz: str = Field(description="Timezone info as A/B")  # TODO: unused
     tz_offset: int = Field(description="Number of seconds offset from UTC")
+    team_id: str = Field(description="Slack team id")
