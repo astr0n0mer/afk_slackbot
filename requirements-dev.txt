@@ -24,7 +24,7 @@ click==8.1.7
     #   uvicorn
 dnspython==2.7.0
     # via pymongo
-fastapi==0.115.5
+fastapi==0.115.6
     # via -r requirements.in
 h11==0.14.0
     # via uvicorn
