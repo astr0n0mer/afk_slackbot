@@ -88,7 +88,7 @@ typing-extensions==4.12.2
     #   pyright
 urllib3==2.2.3
     # via requests
-uv==0.5.7
+uv==0.5.9
     # via -r requirements-dev.in
 uvicorn==0.32.1
     # via -r requirements.in
