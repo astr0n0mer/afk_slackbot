@@ -56,3 +56,13 @@ lint:
 format:
 	. .venv/bin/activate && \
 	ruff format .
+
+.PHONY: group_dependabot_prs
+group_dependabot_prs:
+	git fetch --all & \
+	git switch --create grouped_dependency_upgrade && \
+	git branch --all | grep dependabot | xargs -I {} git merge {} && \
+	gh pr create \
+		--title "build(deps): grouped dependabot upgrades" \
+		--fill-verbose \
+		--assignee "@me"
