@@ -64,7 +64,7 @@ pytest==8.3.4
     # via
     #   -r requirements-dev.in
     #   pytest-asyncio
-pytest-asyncio==0.24.0
+pytest-asyncio==0.25.0
     # via -r requirements-dev.in
 python-dotenv==1.0.1
     # via -r requirements.in
@@ -72,7 +72,7 @@ python-multipart==0.0.19
     # via -r requirements.in
 requests==2.32.3
     # via -r requirements.in
-ruff==0.8.2
+ruff==0.8.3
     # via -r requirements-dev.in
 slack-sdk==3.33.5
     # via -r requirements.in
@@ -88,9 +88,9 @@ typing-extensions==4.12.2
     #   pyright
 urllib3==2.2.3
     # via requests
-uv==0.5.7
+uv==0.5.9
     # via -r requirements-dev.in
-uvicorn==0.32.1
+uvicorn==0.34.0
     # via -r requirements.in
 wheel==0.45.1
     # via pip-tools
