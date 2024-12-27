@@ -40,11 +40,11 @@ pymongo==4.9.2
     # via motor
 python-dotenv==1.0.1
     # via -r requirements.in
-python-multipart==0.0.19
+python-multipart==0.0.20
     # via -r requirements.in
 requests==2.32.3
     # via -r requirements.in
-slack-sdk==3.33.5
+slack-sdk==3.34.0
     # via -r requirements.in
 sniffio==1.3.1
     # via anyio
