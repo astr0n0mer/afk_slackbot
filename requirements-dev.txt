@@ -10,7 +10,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.6.2.post1
     # via starlette
-babel==2.16.0
+babel==2.17.0
     # via -r requirements.in
 build==1.2.2.post1
     # via pip-tools
@@ -24,7 +24,7 @@ click==8.1.7
     #   uvicorn
 dnspython==2.7.0
     # via pymongo
-fastapi==0.115.6
+fastapi==0.115.11
     # via -r requirements.in
 h11==0.14.0
     # via uvicorn
@@ -60,7 +60,7 @@ pyproject-hooks==1.2.0
     #   pip-tools
 pyright==1.1.396
     # via -r requirements-dev.in
-pytest==8.3.4
+pytest==8.3.5
     # via
     #   -r requirements-dev.in
     #   pytest-asyncio
