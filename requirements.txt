@@ -28,7 +28,7 @@ idna==3.10
     # via
     #   anyio
     #   requests
-motor==3.6.0
+motor==3.7.0
     # via -r requirements.in
 parsedatetime==2.6
     # via afk-parser
