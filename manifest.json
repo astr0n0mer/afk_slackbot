@@ -10,7 +10,7 @@
         "slash_commands": [
             {
                 "command": "/afk",
-                "url": "https://a674-2405-201-42-826-84ac-7d38-a7fa-4bed.ngrok-free.app/v1/slack_bot",
+                "url": "https://eager-tips-fail.loca.lt/v1/slack_bot",
                 "description": "Manage AFK status",
                 "usage_hint": "for an hour",
                 "should_escape": false
@@ -21,12 +21,19 @@
         "scopes": {
             "bot": [
                 "chat:write",
+                "chat:write.customize",
+                "chat:write.public",
                 "commands",
-                "users:read"
+                "users:read",
+                "channels:join"
             ]
         }
     },
     "settings": {
+        "interactivity": {
+            "is_enabled": true,
+            "request_url": "https://eager-tips-fail.loca.lt/v1/interactive_message"
+        },
         "org_deploy_enabled": false,
         "socket_mode_enabled": false,
         "token_rotation_enabled": false

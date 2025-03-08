@@ -1,9 +1,10 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime
 from enum import Enum
-from typing import TypedDict
+from typing import Any, TypedDict
 from uuid import uuid4
 
+from fastapi.datastructures import FormData
 from pydantic import BaseModel, Field
 
 AFKRecord_VERSION = 1
@@ -12,6 +13,11 @@ AFKRecord_VERSION = 1
 class AFKStatus(Enum):
     ACTIVE = "active"
     CANCELLED = "cancelled"
+
+
+class SlackPayloadType(Enum):
+    BLOCK_ACTIONS = "block_actions"
+    VIEW_SUBMISSION = "view_submission"
 
 
 class SlashSubcommand(Enum):
@@ -40,6 +46,27 @@ class AFKRecord(BaseModel):
         default=AFKRecord_VERSION,
         description="Model version for backward compatibility",
     )
+
+    @staticmethod
+    def from_interactive_request_body(payload: dict[str, Any]) -> "AFKRecord":
+        return AFKRecord(
+            channel_id=payload["channel"]["id"],
+            command="/afk",
+            end_datetime=float(
+                payload["state"]["values"]["afk_end_input"]["end_time_picker"][
+                    "selected_date_time"
+                ]
+            ),
+            start_datetime=float(
+                payload["state"]["values"]["afk_start_input"]["start_time_picker"][
+                    "selected_date_time"
+                ]
+            ),
+            team_id=payload["team"]["id"],
+            text="interactive_message",
+            trigger_id=str(payload["trigger_id"]),
+            user_id=payload["user"]["id"],
+        )
 
 
 class AFKRecordFilter(TypedDict, total=False):

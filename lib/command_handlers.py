@@ -1,6 +1,7 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
 
 from afk_parser.afk_parser import AFKParser
+from fastapi import Response, status
 from slack_sdk.models.blocks import MarkdownTextObject
 
 from lib.models import AFKRecord, AFKStatus, SlackPostRequestBody, UserInfo
@@ -17,12 +18,17 @@ async def handle_list_subcommand(service: DatabaseService, user_info: UserInfo):
         }
     )
     return (
-        SlackService.get_list_response(
-            records=format_afk_records_to_print(
-                afk_records=sorted(afk_records, key=lambda r: r.end_datetime),
-                user_info=user_info,
-            ),
-        )
+        {
+            "blocks": [
+                block.to_dict()
+                for block in SlackService.get_list_response(
+                    records=format_afk_records_to_print(
+                        afk_records=sorted(afk_records, key=lambda r: r.end_datetime),
+                        user_info=user_info,
+                    ),
+                )
+            ]
+        }
         if len(afk_records) > 0
         else MarkdownTextObject(text="No AFK records")
     )
@@ -52,25 +58,29 @@ async def handle_clear_subcommand(service: DatabaseService, user_info: UserInfo)
     records_updated = await service.clear_afk_status(
         {"team_id": [user_info.team_id], "user_id": [user_info.id]}
     )
-    return (
-        f"{records_updated} AFK record{'s' if records_updated > 1 else ''} cleared"
-        if records_updated
-        else MarkdownTextObject(text="No AFK records")
+    return MarkdownTextObject(
+        text=(
+            f"{records_updated} AFK record{'s' if records_updated > 1 else ''} cleared"
+            if records_updated
+            else "No AFK records"
+        )
     )
 
 
 async def handle_create_subcommand(
     slack_post_request_body: SlackPostRequestBody,
-    service: DatabaseService,
+    database_service: DatabaseService,
+    slack_service: SlackService,
     user_info: UserInfo,
 ):
     parse_result = AFKParser().parse_dates(
         phrase=slack_post_request_body.text, tz_offset=user_info.tz_offset
     )
     if not parse_result:
-        # TODO: trigger error handling mechanism
-        return MarkdownTextObject(
-            text=f'Couldn\'t parse "{slack_post_request_body.text}", please try a simpler phrase'
+        custom_timezone = timezone(timedelta(seconds=user_info.tz_offset))
+        now = datetime.now(tz=custom_timezone)
+        return SlackService.get_custom_input_block(
+            text=slack_post_request_body.text, initial_date_time=int(now.timestamp())
         )
 
     afk_record = AFKRecord(
@@ -78,7 +88,27 @@ async def handle_create_subcommand(
         start_datetime=(parse_result[0]).timestamp(),
         end_datetime=(parse_result[1]).timestamp(),
     )
-    _ = await service.write(records=[afk_record])
-    return SlackService.get_list_response(
-        records=[format_afk_record_to_print(afk_record=afk_record, user_info=user_info)]
+    return await send_slack_message(
+        afk_record=afk_record,
+        database_service=database_service,
+        slack_service=slack_service,
+        user_info=user_info,
     )
+
+
+async def send_slack_message(
+    afk_record: AFKRecord,
+    database_service: DatabaseService,
+    slack_service: SlackService,
+    user_info: UserInfo,
+):
+    _ = await database_service.write(records=[afk_record])
+    _ = slack_service.post_message(
+        channel_id=afk_record.channel_id,
+        blocks=SlackService.get_list_response(
+            records=[
+                format_afk_record_to_print(afk_record=afk_record, user_info=user_info)
+            ]
+        ),
+    )
+    return Response(status_code=status.HTTP_200_OK)

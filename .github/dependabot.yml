@@ -11,3 +11,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"  # Groups all minor/patch updates
+        update-types:
+          - "minor"
+          - "patch"
+
+      major-updates:
+        patterns:
+          - "*"  # Groups all major updates separately
+        update-types:
+          - "major"

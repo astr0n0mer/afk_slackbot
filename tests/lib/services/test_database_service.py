@@ -9,8 +9,7 @@ import pytest
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../.."))
 
 from lib.models import AFKRecord, AFKRecord_VERSION, AFKStatus
-from lib.services import DatabaseService
-from lib.services.jsonl_service import WriteMode
+from lib.services import DatabaseService, WriteMode
 
 
 @pytest.fixture(scope="function", autouse=True)

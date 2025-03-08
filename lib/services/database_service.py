@@ -1,17 +1,21 @@
 from collections.abc import Sequence
-from datetime import UTC, datetime
+from enum import Enum
 from typing import Any, final
 
 from motor.motor_asyncio import AsyncIOMotorCollection
 
 from lib.models import AFKRecord, AFKRecordFilter, AFKStatus
-from lib.services.jsonl_service import WriteMode
 from lib.utils import typed_dict_to_mongodb_query
+
+
+class WriteMode(Enum):
+    OVERWRITE = "w"
+    APPEND = "a"
 
 
 @final
 class DatabaseService:
-    def __init__(self, collection: AsyncIOMotorCollection):
+    def __init__(self, collection: AsyncIOMotorCollection[AFKRecord]):
         self.collection = collection
 
     async def read(self, filter: AFKRecordFilter) -> list[AFKRecord]:
