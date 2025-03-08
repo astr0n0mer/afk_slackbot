@@ -10,7 +10,7 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.6.2.post1
     # via starlette
-babel==2.16.0
+babel==2.17.0
     # via -r requirements.in
 certifi==2024.8.30
     # via requests
@@ -20,7 +20,7 @@ click==8.1.7
     # via uvicorn
 dnspython==2.7.0
     # via pymongo
-fastapi==0.115.6
+fastapi==0.115.11
     # via -r requirements.in
 h11==0.14.0
     # via uvicorn
