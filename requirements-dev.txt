@@ -72,7 +72,7 @@ python-multipart==0.0.20
     # via -r requirements.in
 requests==2.32.3
     # via -r requirements.in
-ruff==0.9.9
+ruff==0.9.10
     # via -r requirements-dev.in
 slack-sdk==3.34.0
     # via -r requirements.in
@@ -88,7 +88,7 @@ typing-extensions==4.12.2
     #   pyright
 urllib3==2.2.3
     # via requests
-uv==0.6.3
+uv==0.6.5
     # via -r requirements-dev.in
 uvicorn==0.34.0
     # via -r requirements.in
