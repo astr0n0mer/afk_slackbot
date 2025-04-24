@@ -26,7 +26,7 @@ dnspython==2.7.0
     # via pymongo
 fastapi==0.115.12
     # via -r requirements.in
-h11==0.14.0
+h11==0.16.0
     # via uvicorn
 idna==3.10
     # via
