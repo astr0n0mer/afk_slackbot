@@ -58,7 +58,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pyright==1.1.399
+pyright==1.1.400
     # via -r requirements-dev.in
 pytest==8.3.5
     # via
@@ -72,7 +72,7 @@ python-multipart==0.0.20
     # via -r requirements.in
 requests==2.32.3
     # via -r requirements.in
-ruff==0.11.6
+ruff==0.11.7
     # via -r requirements-dev.in
 slack-sdk==3.35.0
     # via -r requirements.in
@@ -88,7 +88,7 @@ typing-extensions==4.12.2
     #   pyright
 urllib3==2.2.3
     # via requests
-uv==0.6.14
+uv==0.6.17
     # via -r requirements-dev.in
 uvicorn==0.34.2
     # via -r requirements.in
