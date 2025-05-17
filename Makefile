@@ -26,8 +26,9 @@ install_dev: .venv
 	(uv pip install -r requirements-dev.txt || pip install -r requirements-dev.txt)
 
 .PHONY: upgrade_dependencies
-upgrade_dependencies:
-	pip-compile --upgrade requirements.in
+upgrade_dependencies: .venv install_dev
+	. .venv/bin/activate && \
+	pip-compile --upgrade requirements.in && \
 	pip-compile --upgrade requirements-dev.in
 
 .PHONY: run
