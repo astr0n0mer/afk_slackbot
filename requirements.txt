@@ -42,7 +42,7 @@ python-dotenv==1.1.0
     # via -r requirements.in
 python-multipart==0.0.20
     # via -r requirements.in
-requests==2.32.3
+requests==2.32.4
     # via -r requirements.in
 slack-sdk==3.35.0
     # via -r requirements.in
