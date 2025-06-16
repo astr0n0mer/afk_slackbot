@@ -60,7 +60,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pyright==1.1.401
+pyright==1.1.402
     # via -r requirements-dev.in
 pytest==8.4.0
     # via
@@ -94,7 +94,7 @@ typing-inspection==0.4.1
     # via pydantic
 urllib3==2.4.0
     # via requests
-uv==0.7.12
+uv==0.7.13
     # via -r requirements-dev.in
 uvicorn==0.34.3
     # via -r requirements.in
