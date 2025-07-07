@@ -74,7 +74,7 @@ python-multipart==0.0.20
     # via -r requirements.in
 requests==2.32.4
     # via -r requirements.in
-ruff==0.12.1
+ruff==0.12.2
     # via -r requirements-dev.in
 slack-sdk==3.35.0
     # via -r requirements.in
@@ -93,7 +93,7 @@ typing-inspection==0.4.1
     # via pydantic
 urllib3==2.5.0
     # via requests
-uv==0.7.17
+uv==0.7.19
     # via -r requirements-dev.in
 uvicorn==0.35.0
     # via -r requirements.in
