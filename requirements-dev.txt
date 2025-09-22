@@ -24,7 +24,7 @@ click==8.2.1
     #   uvicorn
 dnspython==2.7.0
     # via pymongo
-fastapi==0.116.1
+fastapi==0.117.1
     # via -r requirements.in
 h11==0.16.0
     # via uvicorn
@@ -74,7 +74,7 @@ python-multipart==0.0.20
     # via -r requirements.in
 requests==2.32.5
     # via -r requirements.in
-ruff==0.13.0
+ruff==0.13.1
     # via -r requirements-dev.in
 slack-sdk==3.36.0
     # via -r requirements.in
@@ -93,9 +93,9 @@ typing-inspection==0.4.1
     # via pydantic
 urllib3==2.5.0
     # via requests
-uv==0.8.17
+uv==0.8.19
     # via -r requirements-dev.in
-uvicorn==0.35.0
+uvicorn==0.36.0
     # via -r requirements.in
 wheel==0.45.1
     # via pip-tools
