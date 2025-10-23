@@ -1,2 +1,2 @@
 [env]
-_.python.venv = { path = ".venv", create = true, python = "3.13" } # https://mise.jdx.dev/lang/python.html#automatic-virtualenv-activation
+_.python.venv = { path = ".venv", create = true, python = "3.14" } # https://mise.jdx.dev/lang/python.html#automatic-virtualenv-activation
