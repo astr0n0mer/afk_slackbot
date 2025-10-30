@@ -25,7 +25,7 @@ A FastAPI-based Slack app to manage and broadcast "AFK" (away-from-keyboard) sta
   - `utils.py`: Helpers (MongoDB filter builder, formatting for display, etc.).
 
 ## Requirements
-- Python 3.11+ (3.13 supported for local dev tooling)
+- Python 3.14+ (3.14 supported for local dev tooling)
 - MongoDB (local or hosted)
 - A Slack app with a bot token and the correct scopes
 
@@ -107,7 +107,7 @@ Run the test suite:
 make test
 ```
 This will:
-- Build a test image from `Dockerfile.test` (Python 3.11, installs dev requirements)
+- Build a test image from `Dockerfile.test` (Python 3.14, installs dev requirements)
 - Start MongoDB container and the tester container using `docker-compose-test.yaml`
 - Execute `pytest -vv`
 
