@@ -1,11 +1,10 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.13-slim-trixie
 
 WORKDIR /afk_slackbot
 COPY . /afk_slackbot
 
 RUN apt update && apt install -y git
-RUN pip install --upgrade pip
 RUN pip install uv
-RUN uv pip install --no-cache-dir --system --requirement requirements-dev.txt
+RUN uv sync
 
-CMD ["pytest", "tests", "-vv"]
+CMD ["python", "-m", "pytest", "tests", "-vv"]

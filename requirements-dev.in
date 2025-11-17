@@ -1,7 +1,0 @@
--r requirements.in
-pip-tools
-pyright
-pytest
-pytest-asyncio
-ruff
-uv
