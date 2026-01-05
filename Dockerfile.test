@@ -1,10 +1,18 @@
 FROM python:3.13-slim-trixie
 
 WORKDIR /afk_slackbot
+
+# Install system dependencies if needed
+RUN apt update && apt install -y git && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip install uv
+
+# Copy project files
 COPY . /afk_slackbot
 
-RUN apt update && apt install -y git
-RUN pip install uv
-RUN uv sync
+# Install all dependencies with uv (including dev dependencies)
+RUN uv sync --all-extras
 
-CMD ["python", "-m", "pytest", "tests", "-vv"]
+# Run tests
+CMD ["uv", "run", "pytest", "tests", "-v"]
