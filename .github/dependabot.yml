@@ -24,4 +24,3 @@ updates:
           - "*"  # Groups all major updates separately
         update-types:
           - "major"
-# hi
