@@ -1,5 +1,8 @@
 FROM python:3.14-slim
 
+ARG TEST_PYTHON=3.14
+ENV TEST_PYTHON=${TEST_PYTHON}
+
 WORKDIR /afk_slackbot
 
 # Install system dependencies if needed
@@ -12,7 +15,7 @@ RUN pip install uv
 COPY . /afk_slackbot
 
 # Install all dependencies with uv (including dev dependencies)
-RUN uv sync --all-extras
+RUN uv sync --all-extras --python "${TEST_PYTHON}"
 
 # Run tests
-CMD ["uv", "run", "pytest", "tests", "-v"]
+CMD ["sh", "-c", "uv run --python \"$TEST_PYTHON\" python --version && uv run --python \"$TEST_PYTHON\" pytest tests -v"]

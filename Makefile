@@ -1,36 +1,37 @@
+UV ?= uv
+COMPOSE ?= docker compose
+TEST_PYTHON ?= 3.14
+
 .PHONY: dev
 dev: install_dev run
 
-.venv:
-	uv venv --clear
-
 .PHONY: install
-install: .venv
-	. .venv/bin/activate && \
-	uv sync --no-dev
+install:
+	$(UV) sync --no-dev
 
 .PHONY: install_dev
 install_dev:
-	. .venv/bin/activate && \
-	uv sync
+	$(UV) sync
 
 .PHONY: upgrade_dependencies
-upgrade_dependencies: .venv install_dev
-	. .venv/bin/activate && \
-	uv sync --upgrade
+upgrade_dependencies:
+	$(UV) sync --upgrade
 
 .PHONY: run
-run: .venv
-	. .venv/bin/activate && \
-	python main.py
+run:
+	$(UV) run python main.py
 
 .PHONY: test
 test:
-	docker-compose --file ./docker-compose-test.yaml up --abort-on-container-exit --remove-orphans
+	TEST_PYTHON=$(TEST_PYTHON) $(COMPOSE) --file ./docker-compose-test.yaml up --build --abort-on-container-exit --remove-orphans
+
+.PHONY: test_local
+test_local:
+	$(UV) run --python $(TEST_PYTHON) pytest
 
 .PHONY: cleanup
 cleanup:
-	docker-compose --file ./docker-compose-test.yaml down --remove-orphans
+	$(COMPOSE) --file ./docker-compose-test.yaml down --remove-orphans
 
 .PHONY: cleanup_deep
 cleanup_deep: cleanup
@@ -38,13 +39,11 @@ cleanup_deep: cleanup
 
 .PHONY: lint
 lint:
-	. .venv/bin/activate && \
-	pyright .
+	$(UV) run pyright .
 
 .PHONY: format
 format:
-	. .venv/bin/activate && \
-	ruff format .
+	$(UV) run ruff format .
 
 .PHONY: group_dependabot_prs
 group_dependabot_prs:

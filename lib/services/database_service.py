@@ -15,13 +15,13 @@ class WriteMode(Enum):
 
 @final
 class DatabaseService:
-    def __init__(self, collection: AsyncIOMotorCollection[AFKRecord]):
+    def __init__(self, collection: AsyncIOMotorCollection[dict[str, Any]]):
         self.collection = collection
 
     async def read(self, filter: AFKRecordFilter) -> list[AFKRecord]:
         query = typed_dict_to_mongodb_query(filter)
         cursor = self.collection.find(filter=query)
-        objects: list[dict] = await cursor.to_list(length=None)
+        objects: list[dict[str, Any]] = await cursor.to_list(length=None)
         records = [AFKRecord.model_validate(o) for o in objects]
         return records
 
@@ -31,7 +31,7 @@ class DatabaseService:
         if mode == WriteMode.OVERWRITE:
             _ = await self.collection.delete_many(filter={})
         insert_result = await self.collection.insert_many(
-            documents=(record.model_dump() for record in records)
+            documents=[record.model_dump() for record in records]
         )
         return insert_result.inserted_ids
 

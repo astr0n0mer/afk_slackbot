@@ -3,9 +3,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.test
+      args:
+        TEST_PYTHON: ${TEST_PYTHON:-3.14}
     container_name: afk_slackbot_test_app
     env_file:
       - .env.test
+    environment:
+      TEST_PYTHON: ${TEST_PYTHON:-3.14}
     networks:
       - afk_slackbot_test_network
     # Automatically remove the container when it exits

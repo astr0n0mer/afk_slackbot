@@ -1,46 +1,71 @@
 # AFK Slackbot
 
-A FastAPI-based Slack app to manage and broadcast "AFK" (away-from-keyboard) status updates in your Slack workspace. Team members can quickly set AFK windows with a natural-language phrase using the `/afk` slash command, list current AFKs, view a monospace table, or clear their status. Records are stored in MongoDB and messages are posted via Slack Block Kit.
+A FastAPI Slack app for managing away-from-keyboard status updates in a Slack workspace. Team members use the `/afk` slash command to set AFK windows with natural-language phrases, list active AFKs, view a compact table, or clear their own status. Records are stored in MongoDB and responses are posted with Slack Block Kit.
+
+## Table of Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Requirements](#requirements)
+- [Configuration](#configuration)
+- [Install and Run Locally](#install-and-run-locally)
+- [Slack App Setup](#slack-app-setup)
+- [Using the Bot](#using-the-bot)
+- [Development Commands](#development-commands)
+- [Testing](#testing)
+- [Deployment Notes](#deployment-notes)
+- [Project Layout](#project-layout)
+- [Suggested Improvements](#suggested-improvements)
 
 ## Features
-- **/afk <phrase>**: Parse a natural-language time range (e.g., `for 1 hour`, `until 5pm`, `from 2pm to 3:30pm`). If parsing fails, the bot opens an interactive modal to pick start/end.
-- **/afk list**: Shows active AFK entries for the workspace.
-- **/afk table**: Shows a monospace table of active AFKs.
-- **/afk clear**: Cancels your currently active AFK records.
-- **Persistence**: Stores AFK records in MongoDB using Motor (async PyMongo).
-- **Locale-aware display**: Uses user locale and timezone to render times.
+
+- `/afk <phrase>` parses natural-language time ranges such as `for 1 hour`, `until 5pm`, or `from 2pm to 3:30pm`.
+- `/afk list` shows active AFK entries for the workspace.
+- `/afk table` shows active AFK entries in a monospace table.
+- `/afk clear` cancels the current user's active AFK entries.
+- Interactive fallback opens a Slack date-time picker when the phrase cannot be parsed.
+- MongoDB persistence stores AFK records with Motor, the async PyMongo driver.
+- Locale-aware display uses Slack user locale and timezone data when rendering times.
 
 ## Architecture
-- API server: FastAPI (`main.py`)
-  - `POST /v1/slack_bot`: Slash command endpoint (form encoded) handling create/list/table/clear.
-  - `POST /v1/interactive_message`: Slack interactivity endpoint for the manual date-time submission flow.
-  - `GET /health-check`: Health endpoint.
-- Core modules (`lib/`)
-  - `models.py`: Pydantic models (AFKRecord, AFKRecordFilter, SlackPostRequestBody, UserInfo) and enums.
-  - `command_handlers.py`: Subcommand handlers and Slack message flow.
-  - `services/`:
-    - `mongo_db.py`: Initializes Motor client and exposes `afk_records_collection`.
-    - `database_service.py`: CRUD on AFK records and AFK clearing logic.
-    - `slack_service.py`: Slack WebClient integration and Block Kit builders.
-  - `utils.py`: Helpers (MongoDB filter builder, formatting for display, etc.).
+
+- API server: `main.py`
+  - `POST /v1/slack_bot`: slash command endpoint for create, list, table, and clear flows.
+  - `POST /v1/interactive_message`: Slack interactivity endpoint for manual date-time submission.
+  - `GET /health-check`: health endpoint.
+- Core modules: `lib/`
+  - `models.py`: Pydantic models and enums.
+  - `command_handlers.py`: subcommand handlers and Slack response flow.
+  - `services/mongo_db.py`: Motor client initialization and collection wiring.
+  - `services/database_service.py`: AFK record CRUD and clear logic.
+  - `services/slack_service.py`: Slack Web API calls and Block Kit builders.
+  - `utils.py`: formatting, MongoDB filter construction, and shared helpers.
 
 ## Requirements
-- Python 3.14+ (3.14 supported for local dev tooling)
-- MongoDB (local or hosted)
-- A Slack app with a bot token and the correct scopes
 
-## Environment variables
-Provide these via `.env` (or your hosting provider’s secret manager). The app also reads `/etc/secrets/.env` when present (e.g., on some hosts).
+- Python 3.14+
+- `uv`
+- MongoDB, local or hosted
+- Docker and Docker Compose for the containerized integration test flow
+- A Slack app with a bot token and slash command support
 
-Required:
-- `SLACK_BOT_TOKEN` — Bot token beginning with `xoxb-...`
-- `SLACK_SIGNING_SECRET` — Slack signing secret for request verification
-- `MONGODB_URI` — MongoDB connection string (e.g., `mongodb://localhost:27017`)
-- `PORT` — Port for the FastAPI server (defaults to 8000 if unset)
-- `ENABLE_HOT_RELOAD` — `true` to enable Uvicorn reload in dev, otherwise `false`
+## Configuration
+
+Provide configuration through `.env` for local development, or through your hosting provider's secret manager in production. The app also loads `/etc/secrets/.env` when present.
+
+Required variables:
+
+| Variable | Description |
+| --- | --- |
+| `SLACK_BOT_TOKEN` | Slack bot token beginning with `xoxb-...`. |
+| `SLACK_SIGNING_SECRET` | Slack signing secret used to verify incoming requests. |
+| `MONGODB_URI` | MongoDB connection string, for example `mongodb://localhost:27017`. |
+| `PORT` | HTTP port for the FastAPI server. Defaults to `8000`. |
+| `ENABLE_HOT_RELOAD` | Set to `true` to enable Uvicorn reload in development. |
 
 Example `.env`:
-```
+
+```dotenv
 SLACK_BOT_TOKEN=xoxb-***
 SLACK_SIGNING_SECRET=***
 MONGODB_URI=mongodb://localhost:27017
@@ -48,92 +73,162 @@ PORT=8000
 ENABLE_HOT_RELOAD=true
 ```
 
-## Install and run locally
-Use the provided `Makefile` to create a virtualenv and install dependencies.
+## Install and Run Locally
 
-1) Create venv and install dev deps:
-```
+Install dependencies with `uv`:
+
+```sh
 make install_dev
 ```
 
-2) Start MongoDB (local or Docker). For local Mongo: ensure it runs on `mongodb://localhost:27017` or set `MONGODB_URI` accordingly.
+Start MongoDB locally, or point `MONGODB_URI` at a hosted database. For a default local setup, use:
 
-3) Run the app:
+```dotenv
+MONGODB_URI=mongodb://localhost:27017
 ```
+
+Run the app:
+
+```sh
 make run
 ```
-The server will start on `http://localhost:8000`. Visit `http://localhost:8000/health-check` to verify.
 
-Notes:
-- Slack request verification in `main.py` uses `slack_sdk.signature.SignatureVerifier` but is currently commented out. For production, enable it by uncommenting those lines to validate `X-Slack-Signature` and `X-Slack-Request-Timestamp`.
+The server starts on `http://localhost:8000` by default. Check `http://localhost:8000/health-check` to confirm it is running.
 
-## Slack app setup
-You can import `manifest.json` to speed up Slack app configuration.
+Security note: Slack request verification is currently present in `main.py` but commented out. Enable it before production use so incoming requests are validated with `X-Slack-Signature` and `X-Slack-Request-Timestamp`.
 
-Scopes (bot):
-- `chat:write`, `chat:write.customize`, `chat:write.public`, `commands`, `users:read`, `channels:join`
+## Slack App Setup
+
+Import `manifest.json` in Slack to speed up app configuration.
+
+Bot scopes:
+
+- `chat:write`
+- `chat:write.customize`
+- `chat:write.public`
+- `commands`
+- `users:read`
+- `channels:join`
 
 Slash command:
+
 - Command: `/afk`
 - Request URL: `https://<your-host>/v1/slack_bot`
-- Short description: Manage AFK status
-- Usage hint: for an hour
+- Short description: `Manage AFK status`
+- Usage hint: `for an hour`
 
 Interactivity:
-- Enable interactivity
+
+- Enable interactivity.
 - Request URL: `https://<your-host>/v1/interactive_message`
 
-Install the app to your workspace and copy:
-- Bot token → `SLACK_BOT_TOKEN`
-- Signing secret → `SLACK_SIGNING_SECRET`
+After installing the app to your workspace, copy the bot token to `SLACK_BOT_TOKEN` and the signing secret to `SLACK_SIGNING_SECRET`.
 
-## Using the bot
-In any channel where the bot is present:
-- `/afk for an hour` — Creates an AFK record for the next hour and posts a message.
-- `/afk until 5pm` or `/afk from 2pm to 3:30pm` — Natural language parsing via `afk_parser`.
-- If parsing fails, an interactive date-time picker is sent.
-- `/afk list` — Shows active AFK entries.
-- `/afk table` — Shows a monospace table.
-- `/afk clear` — Cancels your active AFK entries.
+## Using the Bot
+
+Use these commands in any channel where the bot is present:
+
+```text
+/afk for an hour
+/afk until 5pm
+/afk from 2pm to 3:30pm
+/afk list
+/afk table
+/afk clear
+```
+
+If the bot cannot parse the requested time range, it sends an interactive date-time picker.
+
+## Development Commands
+
+The Makefile uses `uv` for Python dependency management and command execution.
+
+| Command | Description |
+| --- | --- |
+| `make install` | Install production dependencies. |
+| `make install_dev` | Install runtime and development dependencies. |
+| `make run` | Run the FastAPI app with `uv run`. |
+| `make lint` | Run Pyright. |
+| `make format` | Format Python files with Ruff. |
+| `make test_local` | Run pytest against the currently configured MongoDB. |
+| `make test` | Run the Docker Compose integration test stack with Python 3.14. |
+| `make cleanup` | Stop and remove the Docker Compose test stack. |
+| `make cleanup_deep` | Remove the test stack and tester image. |
+| `make upgrade_dependencies` | Upgrade dependencies through `uv sync --upgrade`. |
 
 ## Testing
-Integration tests cover the database service with a real MongoDB in Docker.
 
-Prerequisites:
-- Docker and Docker Compose installed
+Integration tests cover the database service with a real MongoDB container.
 
-Run the test suite:
-```
+Run the containerized test suite:
+
+```sh
 make test
 ```
-This will:
-- Build a test image from `Dockerfile.test` (Python 3.14, installs dev requirements)
-- Start MongoDB container and the tester container using `docker-compose-test.yaml`
-- Execute `pytest -vv`
 
-Cleanup containers and network:
+This builds `Dockerfile.test`, starts MongoDB from `docker-compose-test.yaml`, and runs:
+
+```sh
+uv run pytest tests -v
 ```
+
+Clean up containers and networks:
+
+```sh
 make cleanup
 ```
-Remove the tester image (deep cleanup):
-```
+
+Remove the tester image as well:
+
+```sh
 make cleanup_deep
 ```
 
-## Deployment notes
-- The repo includes a simple `vercel.json` pointing at `main.py`. For production use on Vercel or any other host, ensure:
-  - `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, and `MONGODB_URI` are configured as environment variables.
-  - Public HTTPS URLs are set in Slack for slash command and interactivity.
-- When hosting elsewhere (e.g., Render, Fly.io, Docker on a VPS), expose port `${PORT}` and configure the same environment variables. The app will also load `/etc/secrets/.env` if available.
+If MongoDB is already available through `MONGODB_URI`, run local tests with:
 
-## Project layout
-- `main.py` — FastAPI app and HTTP routes
-- `lib/models.py` — Pydantic models and enums
-- `lib/command_handlers.py` — Command handlers and Slack message flow
-- `lib/services/mongo_db.py` — Mongo client and collection
-- `lib/services/database_service.py` — Mongo CRUD and AFK clearing
-- `lib/services/slack_service.py` — Slack Web API and Block Kit builders
-- `lib/utils.py` — Utilities (formatting, query building)
-- `tests/` — Pytest suite for database service
-- `manifest.json` — Slack app manifest (import into Slack)
-- `Makefile` — Dev tasks (install, test, lint, format)
+```sh
+make test_local
+```
+
+To run local tests with a specific Python version:
+
+```sh
+make test_local TEST_PYTHON=3.14
+```
+
+## Deployment Notes
+
+The repo includes `vercel.json` pointing at `main.py`. For Vercel or another host:
+
+- Configure `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`, and `MONGODB_URI` as environment variables.
+- Set public HTTPS Slack request URLs for slash commands and interactivity.
+- Expose `${PORT}` when deploying outside Vercel.
+- Ensure Slack request verification is enabled before accepting production traffic.
+
+## Project Layout
+
+```text
+.
+├── main.py
+├── lib/
+│   ├── command_handlers.py
+│   ├── models.py
+│   ├── utils.py
+│   └── services/
+├── tests/
+├── manifest.json
+├── pyproject.toml
+├── uv.lock
+├── Makefile
+├── Dockerfile.test
+└── docker-compose-test.yaml
+```
+
+## Suggested Improvements
+
+- Enable Slack signature verification and add tests for rejected requests.
+- Replace `print` diagnostics with structured logging.
+- Add CI that runs `make lint` and `make test`.
+- Add unit tests for slash-command routing, interactive payload handling, and Slack Block Kit output.
+- Add a `.env.example` with safe placeholder values.
+- Consider indexes for active AFK lookup fields in MongoDB if the workspace grows.

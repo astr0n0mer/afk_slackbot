@@ -101,7 +101,11 @@ async def handle_slack_bot_input(request: Request):
 @app.post("/v1/interactive_message")
 async def handle_interactive_message(request: Request):
     form_data = await request.form()
-    payload = json.loads(form_data.get("payload", "{}"))
+    payload_value = form_data.get("payload")
+    if not isinstance(payload_value, str):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    payload = json.loads(payload_value)
     print(f"Payload: {json.dumps(payload, indent=2)}")  # TODO: replace with logger
     if not payload:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
